@@ -83,10 +83,50 @@ COPY --from=prebuild /root/.local /root/.local
 
 ## Configuration Options
 
-| Name     | Description                                                                   | Example             |
-| -------- | ----------------------------------------------------------------------------- | ------------------- |
-| Server   | IP/Hostname to connect to the cups server                                     | `192.168.1.5`       |
-| Port     | Port to connect to the cups server                                            | `631`               |
-| User     | User to connect to the cups server                                            | _can also be empty_ |
-| Password | Password to connect to the cups server                                        | _can also be empty_ |
-| Printer  | Printer from cups server, can be selected if valid connection options are set | `myprinter`         |
+### Machine Settings (per printer)
+
+| Name       | Description                                                                    | Example             |
+| ---------- | ------------------------------------------------------------------------------ | ------------------- |
+| Server     | IP/Hostname to connect to the cups server                                      | `192.168.1.5`       |
+| Port       | Port to connect to the cups server                                             | `631`               |
+| User       | User to connect to the cups server                                             | _can also be empty_ |
+| Password   | Password to connect to the cups server                                         | _can also be empty_ |
+| Encryption | Encryption mode — `Never` is required for SSH tunnels or local port forwarding | `never`             |
+| Printer    | Printer name from cups server                                                  | `myprinter`         |
+
+### Plugin Settings (global)
+
+These are visible under **Settings > Plugins > InvenTree Cups Plugin**:
+
+| Name        | Description                                                                 | Default   |
+| ----------- | --------------------------------------------------------------------------- | --------- |
+| Log Level   | Controls plugin logging verbosity (DEBUG / INFO / WARNING / ERROR)          | `WARNING` |
+| Last Status | Shows the result of the last print or connection event (updated automatically) | —         |
+
+## Troubleshooting
+
+### Common errors
+
+| Error message                                                | Cause                                    | Fix                                                          |
+| ------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------ |
+| `Cannot connect to CUPS server at <host>:<port>…`            | Server unreachable or wrong address/port | Verify the server is running: `lpstat -h <host>:<port> -p`   |
+| `Printer '<name>' not found on CUPS server…`                 | Typo in printer name or printer removed  | List printers: `lpstat -h <host>:<port> -p`                  |
+| `Printer '<name>' is stopped…`                               | Printer paused on CUPS server            | Resume it via the CUPS web UI (`http://<host>:<port>`)        |
+| `Failed to render label '<name>' to PDF…`                    | Bad label template                       | Check the label template in InvenTree for syntax errors       |
+
+### Enable debug logging
+
+1. Go to **Settings > Plugins > InvenTree Cups Plugin**
+2. Set **Log Level** to `Debug — Full diagnostics`
+3. Reproduce the issue
+4. Check the InvenTree server logs for lines starting with `CUPS:`
+
+### Check CUPS connectivity from the command line
+
+```bash
+# List available printers
+lpstat -h <SERVER>:<PORT> -p
+
+# Print a test page
+lp -h <SERVER>:<PORT> -d <PRINTER_NAME> /usr/share/cups/data/testprint
+```
